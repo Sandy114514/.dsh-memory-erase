@@ -1,6 +1,6 @@
-﻿{
+{
     "name":  "@local/dsh-memory-erase",
-    "version":  "1.0.1",
+    "version":  "1.0.2",
     "description":  "Plastic Memories style memory-erase protocol: detects a marked removable drive, asks before erasing the displayed Session, and returns a blank one.",
     "type":  "module",
     "license":  "MIT",

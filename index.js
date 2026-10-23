@@ -153,6 +153,12 @@ export function apply(ctx, config) {
   let present = null;
   /** One prompt per mount: `{ digest, since, acknowledgedAt, details }`. */
   let pending = null;
+  /**
+   * Digest of the medium whose deletion already completed. Until that medium is
+   * removed and reconnected, the prompt stays down — including across a page
+   * refresh or the blank successor Session the erase created.
+   */
+  let suppressedDigest = null;
   let lastScanAt = 0;
 
   function markerDigest(drive, raw, markerPath) {
@@ -221,19 +227,30 @@ export function apply(ctx, config) {
     }
     if (next === undefined) {
       pending = null;
+      // The medium is gone: the next connection is a new mount and may prompt again.
+      suppressedDigest = null;
       return present;
+    }
+    if (suppressedDigest !== null && suppressedDigest !== next.digest) {
+      // A different medium arrived; the previous suppression no longer applies.
+      suppressedDigest = null;
     }
     const sameMount = pending !== null && pending.digest === next.digest;
     if (!sameMount) {
       pending = {
         digest: next.digest,
         since: now,
-        acknowledgedAt: null,
+        acknowledgedAt: suppressedDigest === next.digest ? now : null,
         details: next,
       };
     } else {
-      // Refresh the details without touching the acknowledgement.
-      pending = { ...pending, details: next };
+      // Refresh the details without touching the acknowledgement, and keep the
+      // prompt buried for a medium whose deletion already ran.
+      pending = {
+        ...pending,
+        details: next,
+        acknowledgedAt: suppressedDigest === next.digest ? pending.acknowledgedAt ?? now : pending.acknowledgedAt,
+      };
     }
     return present;
   }
@@ -244,7 +261,8 @@ export function apply(ctx, config) {
     return {
       digest: pending.digest,
       since: pending.since,
-      acknowledged: pending.acknowledgedAt !== null,
+      acknowledged: pending.acknowledgedAt !== null || suppressedDigest === pending.digest,
+      erased: suppressedDigest === pending.digest,
       now,
       drive: details.storage ?? 'storage',
       volumeLabel: details.label ?? null,
@@ -546,8 +564,14 @@ export function apply(ctx, config) {
       }
       if (action === 'rearm') {
         await scan();
-        if (pending !== null) pending = { ...pending, acknowledgedAt: null };
-        return sendJson(res, 200, { ok: pending !== null, device: pendingView() });
+        if (pending === null) return sendJson(res, 200, { ok: false, device: null, reason: 'no-medium' });
+        if (suppressedDigest === pending.digest) {
+          // The deletion already ran for this connection; a manual re-arm must not
+          // resurrect the prompt until the medium is reconnected.
+          return sendJson(res, 200, { ok: false, device: pendingView(), reason: 'already-erased' });
+        }
+        pending = { ...pending, acknowledgedAt: null };
+        return sendJson(res, 200, { ok: true, device: pendingView() });
       }
       if (action === 'debug') {
         return sendJson(res, 200, {
@@ -593,6 +617,7 @@ export function apply(ctx, config) {
       }
       if (action === 'test-trigger') {
         if (method !== 'POST') return sendJson(res, 405, { error: 'method-not-allowed' });
+        suppressedDigest = null;
         pending = {
           digest: `test-${randomUUID()}`,
           since: Date.now(),
@@ -605,6 +630,12 @@ export function apply(ctx, config) {
         if (method !== 'POST') return sendJson(res, 405, { error: 'method-not-allowed' });
         const body = await readJsonBody(req);
         const result = await eraseSession(body ?? {});
+        if (result.ok && result.preview !== true && pending !== null) {
+          // One erase per connection: keep the prompt down even after the blank
+          // successor Session becomes the displayed one.
+          suppressedDigest = pending.digest;
+          pending = { ...pending, acknowledgedAt: Date.now() };
+        }
         return sendJson(res, result.ok ? 200 : 409, result);
       }
       return sendJson(res, 405, { error: 'method-not-allowed' });

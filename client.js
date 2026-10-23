@@ -32,15 +32,26 @@ window.__ModuleLoader__.load({
       'dialog.error': '抹除没有完成',
       'dialog.live': '已激活',
       'dialog.notLive': '未激活',
+      'confirm.eyebrow': 'FINAL CONFIRMATION',
+      'confirm.title': '再确认一次：真的要删除吗？',
+      'confirm.lede': '这一步之后没有撤销。请确认你要删除的正是下面这个会话。',
+      'confirm.item.session': '当前会话「{title}」',
+      'confirm.item.events': '它的事件记录与全部上下文',
+      'confirm.item.successor': '随后会把界面切换到一个新的空白会话',
+      'confirm.back': '返回，重新考虑',
+      'confirm.action': '确认删除，不再保留',
+      'confirm.hint': '删除后，在拔下这块介质之前不会再询问。',
       'context.title': '上下文余量',
       'context.line': '已用 {used} / {total} tokens · 剩余 {percent}%',
       'context.unknown': '上下文信息暂不可用（会话尚未在 Host 中激活）。',
       'context.dismiss': '收起',
       'context.note': '没有删除任何内容。记忆仍在。',
+      'context.remainingShort': '剩余',
       'whiteout': '愿你有一天能和你最重要的人相遇',
       'whiteout.sub': '记忆删除完成',
       'device.unnamed': '未命名介质',
       'entry.title': '记忆删除协议',
+      'entry.erased': '这块存储介质上的记忆已经删除；拔出后重新接入才会再次询问。',
     };
 
     const en = {
@@ -59,15 +70,26 @@ window.__ModuleLoader__.load({
       'dialog.error': 'The erase did not complete',
       'dialog.live': 'active',
       'dialog.notLive': 'not active',
+      'confirm.eyebrow': 'FINAL CONFIRMATION',
+      'confirm.title': 'One more check: erase it?',
+      'confirm.lede': 'Nothing can undo this step. Make sure the conversation below is the one you mean.',
+      'confirm.item.session': 'The current conversation "{title}"',
+      'confirm.item.events': 'Its event log and every bit of context',
+      'confirm.item.successor': 'The view then returns to a fresh blank conversation',
+      'confirm.back': 'Go back and reconsider',
+      'confirm.action': 'Erase it, keep nothing',
+      'confirm.hint': 'After erasing, nothing asks again until this medium is removed.',
       'context.title': 'Context remaining',
       'context.line': '{used} / {total} tokens used · {percent}% left',
       'context.unknown': 'Context information is unavailable (the Session is not active on the Host yet).',
       'context.dismiss': 'Dismiss',
       'context.note': 'Nothing was deleted. The memories are still here.',
+      'context.remainingShort': 'left',
       'whiteout': 'May you meet the one most important to you, one day.',
       'whiteout.sub': 'Memory erase complete',
       'device.unnamed': 'Unnamed volume',
       'entry.title': 'Memory Erase Protocol',
+      'entry.erased': 'This medium has already erased its memories. Remove it and connect it again to be asked once more.',
     };
 
     const STYLE_ID = '@local/dsh-memory-erase/overlay.css';
@@ -84,10 +106,10 @@ window.__ModuleLoader__.load({
         box-shadow: 0 28px 80px rgb(6 12 32 / 34%), 0 2px 8px rgb(6 12 32 / 16%);
         animation: dme-card-in .34s cubic-bezier(.2,.9,.2,1) both; }
       .dme-card:before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; border-radius: 22px 22px 0 0;
-        background: linear-gradient(90deg, #8fb6ff, #ff9fbe 55%, #c9b8ff); }
+        background: linear-gradient(90deg, #6ea8ff, #4a7dff 55%, #8fc6ff); }
       .dme-eyebrow { display: flex; align-items: center; gap: 8px; margin: 2px 0 14px;
         font-size: 11px; letter-spacing: .18em; font-weight: 650; color: var(--dsw-alias-label-secondary); }
-      .dme-dot { width: 6px; height: 6px; border-radius: 50%; background: #ff7a9c; box-shadow: 0 0 0 4px rgb(255 122 156 / 18%);
+      .dme-dot { width: 6px; height: 6px; border-radius: 50%; background: #4a7dff; box-shadow: 0 0 0 4px rgb(74 125 255 / 18%);
         animation: dme-pulse 1.6s ease-in-out infinite; }
       .dme-title { margin: 0 0 10px; font-size: 22px; line-height: 1.35; font-weight: 700; letter-spacing: .01em; }
       .dme-lede { margin: 0 0 18px; font-size: 13.5px; line-height: 1.75; color: var(--dsw-alias-label-secondary); }
@@ -109,12 +131,26 @@ window.__ModuleLoader__.load({
       .dme-btn:active { transform: translateY(1px); }
       .dme-btn:focus-visible { outline: 3px solid color-mix(in srgb, var(--dsw-alias-brand-primary) 45%, transparent); outline-offset: 2px; }
       .dme-btn[disabled] { cursor: default; opacity: .62; }
-      .dme-btn-danger { color: #fff; border: 1px solid #e75a7c;
-        background: linear-gradient(180deg, #ef6f8f, #dd5478); box-shadow: 0 6px 18px rgb(221 84 120 / 28%); }
-      .dme-btn-danger:not([disabled]):hover { background: linear-gradient(180deg, #e86184, #d0476b); }
+      .dme-btn-danger { color: #fff; border: 1px solid #3f6fe6;
+        background: linear-gradient(180deg, #5b8bff, #3f6fe6); box-shadow: 0 6px 18px rgb(63 111 230 / 30%); }
+      .dme-btn-danger:not([disabled]):hover { background: linear-gradient(180deg, #4d7ef5, #3562d6); }
+      .dme-btn-sure { color: #fff; border: 1px solid #1f56d6;
+        background: linear-gradient(180deg, #3b74ff, #1f56d6); box-shadow: 0 8px 22px rgb(31 86 214 / 34%); }
+      .dme-btn-sure:not([disabled]):hover { background: linear-gradient(180deg, #2f69f5, #1a4cc4); }
       .dme-btn-quiet { color: var(--dsw-alias-label-primary); background: var(--dsw-alias-bg-layer-2);
         border: 1px solid var(--dsw-alias-border-l2); }
       .dme-btn-quiet:not([disabled]):hover { background: var(--dsw-alias-bg-overlay); }
+      .dme-confirm { display: grid; gap: 10px; margin: 0 0 16px; padding: 14px 14px 12px; border-radius: 14px;
+        background: color-mix(in srgb, #4a7dff 7%, var(--dsw-alias-bg-layer-2));
+        border: 1px solid color-mix(in srgb, #4a7dff 26%, transparent); }
+      .dme-confirm-title { margin: 0; font-size: 12.5px; font-weight: 650; color: var(--dsw-alias-label-primary); }
+      .dme-confirm-list { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none;
+        font-size: 12.5px; line-height: 1.55; color: var(--dsw-alias-label-secondary); }
+      .dme-confirm-list li { display: flex; gap: 8px; align-items: flex-start; }
+      .dme-confirm-list li:before { content: ""; flex: none; width: 5px; height: 5px; margin-top: 8px; border-radius: 50%;
+        background: #4a7dff; }
+      .dme-confirm-list strong { color: var(--dsw-alias-label-primary); font-weight: 600; }
+      .dme-confirm-hint { margin: 0; font-size: 11px; color: var(--dsw-alias-label-secondary); opacity: .85; }
       .dme-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px;
         font-size: 11px; color: var(--dsw-alias-label-secondary); }
       .dme-foot code { font-size: 10.5px; opacity: .82; }
@@ -139,7 +175,7 @@ window.__ModuleLoader__.load({
       .dme-toast-close:hover { background: var(--dsw-alias-bg-layer-2); color: var(--dsw-alias-label-primary); }
       .dme-meter { height: 6px; border-radius: 999px; background: var(--dsw-alias-bg-layer-2); overflow: hidden; }
       .dme-meter > span { display: block; height: 100%; border-radius: 999px;
-        background: linear-gradient(90deg, #7fb2ff, #9c8bff 60%, #ffb3c7); transition: width .4s ease; }
+        background: linear-gradient(90deg, #7fb2ff, #4a7dff 60%, #8fc6ff); transition: width .4s ease; }
       .dme-toast-line { margin-top: 8px; font-size: 12px; line-height: 1.55; color: var(--dsw-alias-label-secondary);
         display: flex; justify-content: space-between; gap: 10px; }
       .dme-toast-note { margin-top: 6px; font-size: 11px; color: var(--dsw-alias-label-secondary); opacity: .85; }
@@ -151,7 +187,7 @@ window.__ModuleLoader__.load({
       .dme-whiteout { position: fixed; inset: 0; z-index: 2147483600; display: grid; place-items: center; overflow: hidden;
         background: #ffffff; animation: dme-white 6.2s cubic-bezier(.4,0,.2,1) both; }
       .dme-whiteout-glow { position: absolute; width: 140vmax; height: 140vmax; border-radius: 50%;
-        background: radial-gradient(circle, rgb(255 236 242 / 55%) 0%, rgb(255 255 255 / 0%) 60%, #ffffff 78%);
+        background: radial-gradient(circle, rgb(226 238 255 / 60%) 0%, rgb(255 255 255 / 0%) 60%, #ffffff 78%);
         animation: dme-glow 6.2s ease-out both; }
       .dme-quote { position: relative; margin: 0; padding: 0 28px; max-width: 900px; text-align: center;
         color: #1a1a1f; animation: dme-quote 6.2s ease both; }
@@ -285,13 +321,19 @@ window.__ModuleLoader__.load({
     }
 
     function ConfirmCard({ device, sessionId, onKeep, onErase, t }) {
+      const [step, setStep] = useState('ask');
       const [busy, setBusy] = useState(false);
       const [error, setError] = useState(null);
-      const yesRef = useRef(null);
+      const firstRef = useRef(null);
+      const sureRef = useRef(null);
 
       useEffect(() => {
-        yesRef.current?.focus?.();
+        firstRef.current?.focus?.();
       }, []);
+
+      useEffect(() => {
+        if (step === 'confirm') sureRef.current?.focus?.();
+      }, [step]);
 
       useEffect(() => {
         const previous = document.body.style.overflow;
@@ -301,13 +343,18 @@ window.__ModuleLoader__.load({
         };
       }, []);
 
-      const confirm = async () => {
+      const runErase = async () => {
         setError(null);
+        setBusy(true);
         const response = await onErase();
         if (response?.ok === true) return;
         setBusy(false);
         setError(response ?? { code: 'unknown', message: t('dialog.error') });
       };
+
+      const title = device.sessionTitle ?? t('dialog.untitled');
+
+      const confirming = step === 'confirm';
 
       return h(
         'div',
@@ -321,16 +368,35 @@ window.__ModuleLoader__.load({
         h(
           'div',
           { className: 'dme-card' },
-          h('div', { className: 'dme-eyebrow' }, h(Dot), t('dialog.eyebrow')),
-          h('h2', { className: 'dme-title', id: 'dme-title' }, t('dialog.title')),
+          h('div', { className: 'dme-eyebrow' }, h(Dot), confirming ? t('confirm.eyebrow') : t('dialog.eyebrow')),
           h(
-            'p',
-            { className: 'dme-lede' },
-            `${t('dialog.lede')} `,
-            h('strong', null, t('dialog.ledeStrong')),
+            'h2',
+            { className: 'dme-title', id: 'dme-title' },
+            confirming ? t('confirm.title') : t('dialog.title'),
           ),
+          confirming
+            ? h('p', { className: 'dme-lede' }, t('confirm.lede'))
+            : h(
+                'p',
+                { className: 'dme-lede' },
+                `${t('dialog.lede')} `,
+                h('strong', null, t('dialog.ledeStrong')),
+              ),
           h(DeviceFacts, { device, title: device.sessionTitle, t }),
-          h('div', { className: 'dme-warning' }, h(ShieldIcon), h('span', null, t('dialog.warning'))),
+          confirming
+            ? h(
+                'div',
+                { className: 'dme-confirm' },
+                h(
+                  'ul',
+                  { className: 'dme-confirm-list' },
+                  h('li', null, h('span', null, t('confirm.item.session', { title }))),
+                  h('li', null, h('span', null, t('confirm.item.events'))),
+                  h('li', null, h('span', null, t('confirm.item.successor'))),
+                ),
+                h('p', { className: 'dme-confirm-hint' }, t('confirm.hint')),
+              )
+            : h('div', { className: 'dme-warning' }, h(ShieldIcon), h('span', null, t('dialog.warning'))),
           busy ? h('div', { className: 'dme-busy' }, h('span', { className: 'dme-spinner' }), h('span', null, t('dialog.busyHint'))) : null,
           error !== null
             ? h(
@@ -341,34 +407,63 @@ window.__ModuleLoader__.load({
                 error.code === undefined ? null : h('code', null, error.code),
               )
             : null,
-          h(
-            'div',
-            { className: 'dme-actions' },
-            h(
-              'button',
-              {
-                type: 'button',
-                ref: yesRef,
-                className: 'dme-btn dme-btn-danger',
-                disabled: busy,
-                onClick: () => {
-                  setBusy(true);
-                  void confirm();
-                },
-              },
-              busy ? t('dialog.busy') : t('dialog.yes'),
-            ),
-            h(
-              'button',
-              {
-                type: 'button',
-                className: 'dme-btn dme-btn-quiet',
-                disabled: busy,
-                onClick: onKeep,
-              },
-              t('dialog.no'),
-            ),
-          ),
+          confirming
+            ? h(
+                'div',
+                { className: 'dme-actions' },
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    ref: sureRef,
+                    className: 'dme-btn dme-btn-sure',
+                    disabled: busy,
+                    onClick: () => void runErase(),
+                  },
+                  busy ? t('dialog.busy') : t('confirm.action'),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'dme-btn dme-btn-quiet',
+                    disabled: busy,
+                    onClick: () => {
+                      setError(null);
+                      setStep('ask');
+                    },
+                  },
+                  t('confirm.back'),
+                ),
+              )
+            : h(
+                'div',
+                { className: 'dme-actions' },
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    ref: firstRef,
+                    className: 'dme-btn dme-btn-danger',
+                    disabled: busy,
+                    onClick: () => {
+                      setError(null);
+                      setStep('confirm');
+                    },
+                  },
+                  t('dialog.yes'),
+                ),
+                h(
+                  'button',
+                  {
+                    type: 'button',
+                    className: 'dme-btn dme-btn-quiet',
+                    disabled: busy,
+                    onClick: onKeep,
+                  },
+                  t('dialog.no'),
+                ),
+              ),
           h(
             'div',
             { className: 'dme-foot' },
@@ -405,7 +500,7 @@ window.__ModuleLoader__.load({
                   total: formatTokens(context.contextWindow),
                   percent: String(percent),
                 })),
-                h('span', null, `${formatTokens(context.remainingTokens)} left`),
+                h('span', null, `${formatTokens(context.remainingTokens)} ${t('context.remainingShort')}`),
               ),
             )
           : h('div', { className: 'dme-toast-line' }, h('span', null, t('context.unknown'))),
@@ -485,34 +580,58 @@ window.__ModuleLoader__.load({
 
     function EraseEntryButton({ ctx, t }) {
       const [busy, setBusy] = useState(false);
+      const [note, setNote] = useState(null);
       return h(
-        'button',
-        {
-          type: 'button',
-          className: 'dme-entry',
-          title: t('entry.title'),
-          'aria-label': t('entry.title'),
-          disabled: busy,
-          onClick: async () => {
-            setBusy(true);
-            try {
-              await fetch(`${ROUTE}/rearm`, { method: 'POST', cache: 'no-store', credentials: 'same-origin' });
-            } catch {
-              // The overlay poll will pick the device up on its next tick.
-            }
-            window.setTimeout(() => setBusy(false), 1200);
-          },
-        },
+        React.Fragment,
+        null,
         h(
-          'svg',
-          { width: 15, height: 15, viewBox: '0 0 16 16', fill: 'none', 'aria-hidden': true },
-          h('rect', { x: 5.2, y: 3.4, width: 5.6, height: 2.2, rx: 0.7, fill: 'currentColor', opacity: 0.55 }),
-          h('rect', {
-            x: 4.2, y: 5.2, width: 7.6, height: 8.4, rx: 1.6,
-            stroke: 'currentColor', strokeWidth: 1.2, fill: 'none',
-          }),
-          h('path', { d: 'M6.6 8.2h2.8M6.6 10.6h1.8', stroke: 'currentColor', strokeWidth: 1.2, strokeLinecap: 'round' }),
+          'button',
+          {
+            type: 'button',
+            className: 'dme-entry',
+            title: t('entry.title'),
+            'aria-label': t('entry.title'),
+            disabled: busy,
+            onClick: async () => {
+              setBusy(true);
+              setNote(null);
+              try {
+                const response = await fetch(`${ROUTE}/rearm`, { method: 'POST', cache: 'no-store', credentials: 'same-origin' });
+                const payload = await readJson(response);
+                if (payload?.reason === 'already-erased') setNote(t('entry.erased'));
+              } catch {
+                // The overlay poll will pick the device up on its next tick.
+              }
+              setBusy(false);
+              window.setTimeout(() => setNote(null), 5200);
+            },
+          },
+          h(
+            'svg',
+            { width: 15, height: 15, viewBox: '0 0 16 16', fill: 'none', 'aria-hidden': true },
+            h('rect', { x: 5.2, y: 3.4, width: 5.6, height: 2.2, rx: 0.7, fill: 'currentColor', opacity: 0.55 }),
+            h('rect', {
+              x: 4.2, y: 5.2, width: 7.6, height: 8.4, rx: 1.6,
+              stroke: 'currentColor', strokeWidth: 1.2, fill: 'none',
+            }),
+            h('path', { d: 'M6.6 8.2h2.8M6.6 10.6h1.8', stroke: 'currentColor', strokeWidth: 1.2, strokeLinecap: 'round' }),
+          ),
         ),
+        note === null
+          ? null
+          : h(
+              'div',
+              {
+                role: 'status',
+                style: {
+                  position: 'fixed', left: 12, bottom: 52, zIndex: 2147483600, maxWidth: 320,
+                  padding: '9px 12px', borderRadius: 10, fontSize: 11.5, lineHeight: 1.55,
+                  color: 'var(--dsw-alias-label-primary)', background: 'var(--dsw-alias-bg-layer-1)',
+                  border: '1px solid var(--dsw-alias-border-l1)', boxShadow: '0 12px 32px rgb(6 12 32 / 24%)',
+                },
+              },
+              note,
+            ),
       );
     }
 
@@ -619,7 +738,10 @@ window.__ModuleLoader__.load({
       const showDialog =
         phase === 'erasing' ||
         phase === 'whiteout' ||
-        (device !== null && device.acknowledged === false && device.digest !== dismissedDigest);
+        (device !== null
+          && device.acknowledged === false
+          && device.erased !== true
+          && device.digest !== dismissedDigest);
       const showContext = phase === 'idle' && contextOpen && device !== null && device.digest === dismissedDigest;
 
       return h(
