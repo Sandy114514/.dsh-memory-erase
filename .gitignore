@@ -1,0 +1,9 @@
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+*.tmp
+
+# local scratch
+node_modules/
