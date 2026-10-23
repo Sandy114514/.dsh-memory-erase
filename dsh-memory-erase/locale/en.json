@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Memory Erase Protocol",
+    "description": "Detects the one removable drive that carries the marker file, asks whether to erase all memories, and on confirmation fades the screen to white and erases the current Session, returning a blank one."
+  }
+}
