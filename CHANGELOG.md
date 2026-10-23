@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.3 — 2026-10-23
+
+- **修复致命启动问题**：回收区从 `~/.dsh/sessions/.memory-erase-trash/` 移到
+  `~/.dsh/.memory-erase-trash/`，即从 `sessions/` 内部搬到同级目录。
+  原因：Host 把 `sessions/` 下每个目录都当工作区来扫描，被归档的会话文件头里仍是原 cwd，
+  位置与记录不符会被判定为 `corrupt session log`，进而让 `workspace-registry` 插件激活失败、
+  整个 dsh 无法启动。回收区放在会话根目录里属于设计错误。
+- **自动搬走历史残留**：插件激活时会检查旧的 `sessions/.memory-erase-trash/`，
+  发现即整体迁移到新位置；若已有新回收区则逐个搬迁条目，仍搬不动的条目会被放到
+  `~/.dsh/.memory-erase-trash-quarantine-<时间戳>/`，确保它不再留在扫描范围内。
+  全程只做移动，不删除任何会话记录。
+
 ## 1.0.2 — 2026-10-23
 
 - **二次确认**：第一颗「是，删除全部记忆」不再直接删除，只切换到确认页；

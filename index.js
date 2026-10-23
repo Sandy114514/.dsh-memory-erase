@@ -13,7 +13,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { appendFile, mkdir, readFile, readdir, rename, rm, stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 export const name = 'memory-erase';
 export const inject = ['webServer'];
@@ -129,6 +129,54 @@ export function apply(ctx, config) {
   const trashRetentionDays = Math.max(0, Number(settings.trashRetentionDays) ?? DEFAULTS.trashRetentionDays);
   const testMode = settings.testMode === true;
   const sessionsRootPath = sessionsRoot();
+
+  /**
+   * The trash lives *beside* the session root, never inside it. The Host reads
+   * every directory under `sessions/` as a project directory and rejects any
+   * artifact whose stored cwd disagrees with its location — one archived
+   * Session in there used to abort `workspace-registry` and take the whole
+   * startup down with it.
+   */
+  function trashRoot() {
+    return join(dirname(sessionsRootPath), TRASH_DIR_NAME);
+  }
+
+  /**
+   * Builds before 1.0.3 wrote the trash under `sessions/`. Relocate it the
+   * moment it appears, because a leftover there is a startup-blocking defect.
+   * Nothing is ever deleted: entries are moved, and if something refuses to
+   * move it is kept under a quarantine name outside the scanned root.
+   */
+  async function migrateLegacyTrash() {
+    const legacy = join(sessionsRootPath, TRASH_DIR_NAME);
+    if (!existsSync(legacy)) return;
+    const target = trashRoot();
+    try {
+      if (!existsSync(target)) {
+        await rename(legacy, target);
+        return;
+      }
+      await mkdir(target, { recursive: true });
+      let movedAll = true;
+      for (const entry of await readdir(legacy)) {
+        try {
+          await rename(join(legacy, entry), join(target, entry));
+        } catch {
+          movedAll = false;
+        }
+      }
+      if (movedAll) {
+        await rm(legacy, { recursive: true, force: true });
+        return;
+      }
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+      await rename(legacy, join(dirname(sessionsRootPath), `${TRASH_DIR_NAME}-quarantine-${stamp}`));
+    } catch {
+      // A locked or read-only home must never block plugin activation.
+    }
+  }
+
+  void migrateLegacyTrash();
 
   /**
    * Durable breadcrumb for the destructive path only: which Session the
@@ -370,26 +418,26 @@ export function apply(ctx, config) {
 
   async function moveToTrash(directory, sessionId) {
     const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const trashRoot = join(sessionsRootPath, TRASH_DIR_NAME);
-    await mkdir(trashRoot, { recursive: true });
-    const destination = join(trashRoot, `${String(sessionId)}.${stamp}`);
+    const root = trashRoot();
+    await mkdir(root, { recursive: true });
+    const destination = join(root, `${String(sessionId)}.${stamp}`);
     await waitFor(() => rename(directory, destination), 6, 400);
     return destination;
   }
 
   async function sweepTrash() {
     if (trashRetentionDays <= 0) return;
-    const trashRoot = join(sessionsRootPath, TRASH_DIR_NAME);
-    if (!existsSync(trashRoot)) return;
+    const root = trashRoot();
+    if (!existsSync(root)) return;
     const cutoff = Date.now() - trashRetentionDays * 24 * 60 * 60 * 1000;
     let entries;
     try {
-      entries = await readdir(trashRoot);
+      entries = await readdir(root);
     } catch {
       return;
     }
     for (const entry of entries) {
-      const target = join(trashRoot, entry);
+      const target = join(root, entry);
       try {
         if ((await stat(target)).mtimeMs < cutoff) await rm(target, { recursive: true, force: true });
       } catch {
