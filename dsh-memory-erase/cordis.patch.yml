@@ -1,8 +1,0 @@
-- insert:
-    - id: memory-erase
-      name: '@local/dsh-memory-erase'
-      config:
-        markerFile: .dsh-memory-erase.key
-        pollIntervalMs: 1200
-        trashRetentionDays: 7
-        testMode: true
